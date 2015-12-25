@@ -1,8 +1,11 @@
 //
 //  main.cpp
+//  C++ClassBST
 //
 //  Basic BST class implementation with insert, search, remove, recursive inorder print,
 //  and iterative inorder print.
+//
+//  The data type of value in the leaf struct is templateized.
 //
 //  Created by Christopher Gleeson on 12/21/15.
 //  Copyright © 2015 Christopher Gleeson. All rights reserved.
@@ -12,16 +15,18 @@
 #include <stack>
 #include <cassert>
 
+template <typename T>
 struct leaf {
-    int value;
-    struct leaf * left;
-    struct leaf * right;
+    T value;
+    struct leaf<T> * left;
+    struct leaf<T> * right;
 };
 
+template <typename T>
 class BST {
 private:
-    struct leaf *root;
-    void destroy_tree(struct leaf *lf){
+    struct leaf<T> *root;
+    void destroy_tree(struct leaf<T> *lf){
         if(lf == NULL){
             return;
         }
@@ -29,7 +34,7 @@ private:
         destroy_tree(lf->right);
         delete lf;
     }
-    struct leaf * find_parent(struct leaf *child, struct leaf * current){
+    struct leaf<T> * find_parent(struct leaf<T> *child, struct leaf<T> * current){
         if(current == NULL){
             return NULL;
         }else if(current->left == child || current->right == child){
@@ -41,10 +46,10 @@ private:
         }
         return NULL;
     }
-    void insert_hlpr(int key, struct leaf *lf){
+    void insert_hlpr(T key, struct leaf<T> *lf){
         if(key < lf->value){
             if(lf->left == NULL){
-                lf->left = new struct leaf;
+                lf->left = new struct leaf<T>;
                 lf->left->value = key;
                 lf->left->left = NULL;
                 lf->left->right = NULL;
@@ -54,7 +59,7 @@ private:
             }
         }else if(key > lf->value){
             if(lf->right == NULL){
-                lf->right = new struct leaf;
+                lf->right = new struct leaf<T>;
                 lf->right->value = key;
                 lf->right->left = NULL;
                 lf->right->right = NULL;
@@ -66,7 +71,7 @@ private:
             //key is already in the tree, do nothing
         }
     }
-    struct leaf * search_hlpr(int key, struct leaf * lf){
+    struct leaf<T> * search_hlpr(T key, struct leaf<T> * lf){
         if(lf == NULL){
             return lf;
         }else if(key == lf->value){
@@ -78,7 +83,7 @@ private:
         }
         return NULL;
     }
-    void remove_hlpr(struct leaf *lf){
+    void remove_hlpr(struct leaf<T> *lf){
         //this function takes a node to be removed that is in the tree
         //cases:  1. node has no children, just remove the node.
         //2. node has one child, copy the value of child to node and delete child.
@@ -87,7 +92,7 @@ private:
         //case 1
         if(lf->left == NULL && lf->right == NULL){
             //must set the parent's pointer to lf to null before we delete
-            struct leaf *parent = find_parent(lf, root);
+            struct leaf<T> *parent = find_parent(lf, root);
             if(lf->value < parent->value){
                 parent->left = NULL;
             }else{
@@ -109,7 +114,7 @@ private:
         }
         //case 3
         if(lf->left != NULL && lf->right != NULL){
-            struct leaf *iop = inorder_pred_hlpr(lf);
+            struct leaf<T> *iop = inorder_pred_hlpr(lf);
             if(iop!=NULL){
                 lf->value = iop->value;
                 remove_hlpr(iop);
@@ -121,11 +126,11 @@ private:
             }
         }
     }
-    struct leaf * inorder_pred_hlpr(struct leaf *lf){
+    struct leaf<T> * inorder_pred_hlpr(struct leaf<T> *lf){
         //to find the inorder predecessor we look to the left child
         //then traverse as far right as possible.  when we can no
         //longer traverse right, we are at the IOP.
-        struct leaf *iop = NULL;
+        struct leaf<T> *iop = NULL;
         if(lf->left == NULL){
             return iop;
         }else{
@@ -136,7 +141,7 @@ private:
         }
         return iop;
     }
-    void print_inorder_hlpr(struct leaf *lf){
+    void print_inorder_hlpr(struct leaf<T> *lf){
         if(lf == NULL) return;
         print_inorder_hlpr(lf->left);
         std::cout << lf->value << "\n";
@@ -147,8 +152,8 @@ private:
             std::cout << "Tree is empty!\n";
             return;
         }
-        std::stack <struct leaf *> myStack;
-        struct leaf *current = root;
+        std::stack <struct leaf<T> *> myStack;
+        struct leaf<T> *current = root;
         //Inorder iterative traversal algorithm:
         //0.  set current to root.
         //1.  while stack is not empty OR current != NULL
@@ -162,7 +167,7 @@ private:
                 current = current->left;
                 continue;
             }
-            struct leaf *popped = myStack.top();
+            struct leaf<T> *popped = myStack.top();
             std::cout << popped->value << "\n";
             current = popped->right;
             myStack.pop();
@@ -171,43 +176,47 @@ private:
 public:
     BST();
     ~BST();
-    void insert(int key);
-    bool search(int key);
-    void remove(int key);
+    void insert(T key);
+    bool search(T key);
+    void remove(T key);
     void print_tree_inorder();
     void print_tree_it_inorder();
-    void inorder_predecessor(int key); //for testing only
-    void locate_parent(int key); //for testing only
+    void inorder_predecessor(T key); //for testing only
+    void locate_parent(T key); //for testing only
 };
 
-BST::BST(){
+template <typename T>
+BST<T>::BST(){
     root = NULL;
 }
 
-BST::~BST(){
+template <typename T>
+BST<T>::~BST(){
     destroy_tree(root);
 }
 
-void BST::insert(int key){
+template <typename T>
+void BST<T>::insert(T key){
     if(root != NULL){
         insert_hlpr(key, root);
         return;
     }
-    root = new struct leaf;
+    root = new struct leaf<T>;
     root->left = NULL;
     root->right = NULL;
     root->value = key;
     std::cout << "Inserting " << key << " into tree.\n";
 }
 
-bool BST::search(int key){
+template <typename T>
+bool BST<T>::search(T key){
     //search for key in the tree and return a
     //pointer to the node containing the key,
     //else return a NULL pointer
     if(root == NULL){
         return false;
     }else{
-        struct leaf *found = search_hlpr(key, root);
+        struct leaf<T> *found = search_hlpr(key, root);
         if(found != NULL){
             return true;
         }else{
@@ -216,18 +225,19 @@ bool BST::search(int key){
     }
 }
 
-void BST::remove(int key){
+template <typename T>
+void BST<T>::remove(T key){
     if(!search(key)){
         std::cout << "Key not in tree, no removal possible.\n";
     }else{
-        struct leaf *rem = search_hlpr(key, root);
+        struct leaf<T> *rem = search_hlpr(key, root);
         std::cout << "Value to remove is " << rem->value << "\n";
         remove_hlpr(rem);
     }
 }
 
-
-void BST::print_tree_inorder(){
+template <typename T>
+void BST<T>::print_tree_inorder(){
     if(root == NULL){
         std::cout << "Tree is empty!\n";
     }else{
@@ -235,7 +245,8 @@ void BST::print_tree_inorder(){
     }
 }
 
-void BST::print_tree_it_inorder(){
+template <typename T>
+void BST<T>::print_tree_it_inorder(){
     if(root == NULL){
         std::cout << "Tree is empty!\n";
     }else{
@@ -243,9 +254,10 @@ void BST::print_tree_it_inorder(){
     }
 }
 
-void BST::inorder_predecessor(int key){
-    struct leaf *found = search_hlpr(key, root);
-    struct leaf *iop = inorder_pred_hlpr(found);
+template <typename T>
+void BST<T>::inorder_predecessor(T key){
+    struct leaf<T> *found = search_hlpr(key, root);
+    struct leaf<T> *iop = inorder_pred_hlpr(found);
     
     if(iop == NULL){
         std::cout << "There is no inorder predecessor for key of " << key << "\n";
@@ -256,9 +268,10 @@ void BST::inorder_predecessor(int key){
     }
 }
 
-void BST::locate_parent(int key){
-    struct leaf * par = NULL;
-    struct leaf * child = search_hlpr(key, root);
+template <typename T>
+void BST<T>::locate_parent(T key){
+    struct leaf<T> * par = NULL;
+    struct leaf<T> * child = search_hlpr(key, root);
     if(child != NULL){
         par = find_parent(child, root);
     }
@@ -269,7 +282,7 @@ void BST::locate_parent(int key){
 
 int main(int argc, const char * argv[]){
     //create a tree object
-    BST *myTree = new BST;
+    BST<int> *myTree = new BST<int>;
     
     //print the empty tree
     myTree->print_tree_inorder();
