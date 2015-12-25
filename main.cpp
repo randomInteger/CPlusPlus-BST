@@ -124,7 +124,7 @@ private:
     struct leaf * inorder_pred_hlpr(struct leaf *lf){
         //to find the inorder predecessor we look to the left child
         //then traverse as far right as possible.  when we can no
-        //longer traverse right, we are at teh IOP.
+        //longer traverse right, we are at the IOP.
         struct leaf *iop = NULL;
         if(lf->left == NULL){
             return iop;
