@@ -5,6 +5,10 @@
 //  Basic BST class implementation with insert, search, remove, recursive inorder print,
 //  and iterative inorder print.
 //
+//  This solution uses recursion for educational purposes.  In a production environment, 
+//  I would use iterative solutions for both maintainability, and so that large values of N
+//  do not blow up the call stack.  ;-)
+//
 //  The data type of value in the leaf struct is templateized.
 //
 //  Created by Christopher Gleeson on 12/21/15.
