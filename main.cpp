@@ -2,10 +2,8 @@
 //  main.cpp
 //  C++ClassBST
 //
-//  Basic BST class implementation with insert, search, remove, recursive inorder print,
-//  and iterative inorder print.
+//  Tester for the BST class implemented in BST.hpp.
 //
-//  The data type of value in the leaf struct is templateized.
 //
 //  Created by Christopher Gleeson on 12/21/15.
 //  Copyright © 2015 Christopher Gleeson. All rights reserved.
