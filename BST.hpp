@@ -2,7 +2,7 @@
 //  BST.hpp
 //
 //  A class based implementation of a simple binary search tree (unbalanced).
-//  Key data type is a template, any numeric type can be used.
+//  value data type is a template, any numeric type can be used.
 //
 //  Created by Christopher Gleeson on 1/7/16.
 //  Copyright © 2016 Christopher Gleeson. All rights reserved.
@@ -21,155 +21,123 @@ struct leaf {
 template <typename T>
 class BST {
 private:
+    
     struct leaf<T> *root;
     
     //Private helper to destroy the tree
-    void destroy_tree(struct leaf<T> *lf){
-        if(lf == NULL){
+    void _destroy_tree(struct leaf<T> *current){
+        if(current == NULL){
             return;
         }
-        destroy_tree(lf->left);
-        destroy_tree(lf->right);
-        delete lf;
-    }
-    
-    //Private helper to find the parent of a given node
-    struct leaf<T> * find_parent(struct leaf<T> *child, struct leaf<T> * current){
-        if(current == NULL){
-            return NULL;
-        }else if(current->left == child || current->right == child){
-            return current;
-        }else if(child->value < current->value){
-            return find_parent(child, current->left);
-        }else if(child->value > current->value){
-            return find_parent(child, current->right);
-        }
-        return NULL;
+        _destroy_tree(current->left);
+        _destroy_tree(current->right);
+        delete current;
     }
     
     //Private helper to insert a node
-    void insert_hlpr(T key, struct leaf<T> *lf){
-        if(key < lf->value){
-            if(lf->left == NULL){
+    void _insert_hlpr(struct leaf<T> *current, T value){
+        if(value < current->value){
+            if(current->left == NULL){
                 try {
-                    lf->left = new struct leaf<T>;
+                    current->left = new struct leaf<T>;
                 } catch (std::bad_alloc& exc) {
                     std::cerr << "ERROR: could not allocate storage.  Terminating!\n";
                     std::terminate();
                 }
-                lf->left->value = key;
-                lf->left->left = NULL;
-                lf->left->right = NULL;
-                std::cout << "Inserting " << key << " into tree.\n";
+                current->left->value = value;
+                current->left->left = NULL;
+                current->left->right = NULL;
+                std::cout << "Inserting " << value << " into tree.\n";
             }else{
-                insert_hlpr(key, lf->left);
+                _insert_hlpr(current->left, value);
             }
-        }else if(key > lf->value){
-            if(lf->right == NULL){
+        }else if(value > current->value){
+            if(current->right == NULL){
                 try {
-                    lf->right = new struct leaf<T>;
+                    current->right = new struct leaf<T>;
                 } catch (std::bad_alloc& exc) {
                     std::cerr << "ERROR: could not allocate storage.  Terminating!\n";
                     std::terminate();
                 }
-                lf->right->value = key;
-                lf->right->left = NULL;
-                lf->right->right = NULL;
-                std::cout << "Inserting " << key << " into tree.\n";
+                current->right->value = value;
+                current->right->left = NULL;
+                current->right->right = NULL;
+                std::cout << "Inserting " << value << " into tree.\n";
             }else{
-                insert_hlpr(key, lf->right);
+                _insert_hlpr(current->right, value);
             }
-        }else{
-            //key is already in the tree, do nothing
         }
+        //there is nothing left to do if we reach here, node already exists
     }
     
     //Private helper to find a node
-    struct leaf<T> * search_hlpr(T key, struct leaf<T> * lf){
-        if(lf == NULL){
-            return lf;
-        }else if(key == lf->value){
-            return lf;
-        }else if(key < lf->value){
-            return search_hlpr(key, lf->left);
-        }else if(key > lf->value){
-            return search_hlpr(key, lf->right);
+    struct leaf<T> * _search_hlpr(struct leaf<T> * current, T value){
+        if(!current){
+            //do nothing
+        }else if(value < current->value){
+            current = _search_hlpr(current->left, value);
+        }else if(value > current->value){
+            current = _search_hlpr(current->right, value);
         }
-        return NULL;
+        return current;
     }
     
     //Private helper to remove a node.
-    void remove_hlpr(struct leaf<T> *lf){
-        //this function takes a node to be removed that is in the tree
-        //cases:  1. node has no children, just remove the node.
-        //2. node has one child, copy the value of child to node and delete child.
-        //3. node has two children:  copy inorder predecessor into node, call delete
-        //on the inorder predecessor, which will then hit case 1 or 2.
-        //case 1
-        if(lf->left == NULL && lf->right == NULL){
-            //must set the parent's pointer to lf to null before we delete
-            struct leaf<T> *parent = find_parent(lf, root);
-            if(lf->value < parent->value){
-                parent->left = NULL;
-            }else{
-                parent->right = NULL;
-            }
-            delete lf;
-            return;
-        }
-        //case 2
-        if(lf->left == NULL && lf->right != NULL){
-            lf->value = lf->right->value;
-            remove_hlpr(lf->right);
-            return;
-        }
-        if(lf->left != NULL && lf->right == NULL){
-            lf->value = lf->left->value;
-            remove_hlpr(lf->left);
-            return;
-        }
-        //case 3
-        if(lf->left != NULL && lf->right != NULL){
-            struct leaf<T> *iop = inorder_pred_hlpr(lf);
-            if(iop!=NULL){
-                lf->value = iop->value;
-                remove_hlpr(iop);
-                return;
-            }else{
-                //this should not be necessary, but its good to handle this case
-                std::cerr << "Critical error in node deletion! Abort!\n";
-                assert(iop != NULL);
+    struct leaf<T> * _remove_hlpr(struct leaf<T> *current, T value){
+        if(!current){
+            return current;
+        }else if(value < current->value){
+            current->left = _remove_hlpr(current->left, value);
+        }else if(value > current->value){
+            current->right = _remove_hlpr(current->right, value);
+        }else{
+            //current->value == value
+            if(!current->right && !current->left){
+                //Case 1: Current has no children
+                delete(current);
+                current = nullptr;
+            }else if(current->left && !current->right){
+                //Case 2:  Current has only a left child
+                delete(current);
+                current = current->left;
+            }else if(current->right && !current->left){
+                //Case 3:  Current has only a right child
+                delete(current);
+                current = current->right;
+            }else if(current->left && current->right){
+                //Case 4:  Current has both left and right children
+                auto iop = _inorder_pred_hlpr(current);
+                current->value = iop->value;
+                current->left = _remove_hlpr(current->left, iop->value);
             }
         }
+        return current;
     }
     
     //Private helper to find the in-order predecessor, needed for deletion
-    struct leaf<T> * inorder_pred_hlpr(struct leaf<T> *lf){
-        //to find the inorder predecessor we look to the left child
-        //then traverse as far right as possible.  when we can no
-        //longer traverse right, we are at the IOP.
-        struct leaf<T> *iop = NULL;
-        if(lf->left == NULL){
-            return iop;
+    struct leaf<T> * _inorder_pred_hlpr(struct leaf<T> *current){
+        //can be called on a node with no children
+        if(!current->left && !current->right){
+            return nullptr;
         }else{
-            iop = lf->left;
+            auto iop = current->left;
+            while(iop->right != NULL){
+                iop = iop->right;
+            }
+            return iop;
         }
-        while(iop->right != NULL){
-            iop = iop->right;
-        }
-        return iop;
     }
     
     //Private helper for printing the tree inorder, recursive.
-    void print_inorder_hlpr(struct leaf<T> *lf){
-        if(lf == NULL) return;
-        print_inorder_hlpr(lf->left);
-        std::cout << lf->value << "\n";
-        print_inorder_hlpr(lf->right);
+    void _print_inorder_hlpr(struct leaf<T> *current){
+        if(current == NULL) return;
+        _print_inorder_hlpr(current->left);
+        std::cout << current->value << "\n";
+        _print_inorder_hlpr(current->right);
     }
     
     //Private helper for printing the tree inorder, iterative.
-    void print_it_inorder_hlpr(){
+    void _print_it_inorder_hlpr(){
         if(root == NULL) {
             std::cout << "Tree is empty!\n";
             return;
@@ -198,13 +166,12 @@ private:
 public:
     BST();
     ~BST();
-    void insert(T key);
-    bool search(T key);
-    void remove(T key);
+    void insert(T value);
+    bool search(T value);
+    void remove(T value);
     void print_tree_inorder();
     void print_tree_it_inorder();
-    void inorder_predecessor(T key); //for testing only
-    void locate_parent(T key); //for testing only
+    void inorder_predecessor(T value); //for testing only
 };
 
 //Constructor
@@ -216,40 +183,42 @@ BST<T>::BST(){
 //Destructor
 template <typename T>
 BST<T>::~BST(){
-    destroy_tree(root);
+    _destroy_tree(root);
 }
 
-//Inserts a key into the tree
+//Inserts a value into the tree
 //Error:  badalloc causes terminate.
 template <typename T>
-void BST<T>::insert(T key){
+void BST<T>::insert(T value){
     if(root != NULL){
-        insert_hlpr(key, root);
+        _insert_hlpr(root, value);
         return;
+    }else{
+        try {
+            root = new struct leaf<T>;
+        } catch (std::bad_alloc& exc) {
+            std::cerr << "ERROR: could not allocate storage.  Terminating!\n";
+            std::terminate();
+        }
+        root->left = NULL;
+        root->right = NULL;
+        root->value = value;
+        std::cout << "Inserting " << value << " into tree.\n";
     }
-    try {
-        root = new struct leaf<T>;
-    } catch (std::bad_alloc& exc) {
-        std::cerr << "ERROR: could not allocate storage.  Terminating!\n";
-        std::terminate();
-    }
-    root->left = NULL;
-    root->right = NULL;
-    root->value = key;
-    std::cout << "Inserting " << key << " into tree.\n";
 }
 
-//Search for a key in the tree
+//Search for a value in the tree
 template <typename T>
-bool BST<T>::search(T key){
-    //search for key in the tree and return a
-    //pointer to the node containing the key,
+bool BST<T>::search(T value){
+    //search for value in the tree and return a
+    //pointer to the node containing the value,
     //else return a NULL pointer
     if(root == NULL){
         return false;
     }else{
-        struct leaf<T> *found = search_hlpr(key, root);
+        auto *found = _search_hlpr(root, value);
         if(found != NULL){
+            std::cout << "found " << found->value << "\n";
             return true;
         }else{
             return false;
@@ -257,15 +226,13 @@ bool BST<T>::search(T key){
     }
 }
 
-//Remove a key from the tree
+//Remove a value from the tree
 template <typename T>
-void BST<T>::remove(T key){
-    if(!search(key)){
-        std::cout << "Key not in tree, no removal possible.\n";
+void BST<T>::remove(T value){
+    if(root){
+        root = _remove_hlpr(root, value);
     }else{
-        struct leaf<T> *rem = search_hlpr(key, root);
-        std::cout << "Value to remove is " << rem->value << "\n";
-        remove_hlpr(rem);
+        std::cout << "Remove called on an empty tree.\n";
     }
 }
 
@@ -275,7 +242,7 @@ void BST<T>::print_tree_inorder(){
     if(root == NULL){
         std::cout << "Tree is empty!\n";
     }else{
-        print_inorder_hlpr(root);
+        _print_inorder_hlpr(root);
     }
 }
 
@@ -285,37 +252,23 @@ void BST<T>::print_tree_it_inorder(){
     if(root == NULL){
         std::cout << "Tree is empty!\n";
     }else{
-        print_it_inorder_hlpr();
+        _print_it_inorder_hlpr();
     }
 }
 
-//Find the inorder predecessor of a key in the tree if it exists.
+//Find the inorder predecessor of a value in the tree if it exists.
 template <typename T>
-void BST<T>::inorder_predecessor(T key){
-    struct leaf<T> *found = search_hlpr(key, root);
-    struct leaf<T> *iop = inorder_pred_hlpr(found);
+void BST<T>::inorder_predecessor(T value){
+    auto found = _search_hlpr(root, value);
+    auto iop = _inorder_pred_hlpr(found);
     
     if(iop == NULL){
-        std::cout << "There is no inorder predecessor for key of " << key << "\n";
+        std::cout << "There is no inorder predecessor for value of " << value << "\n";
         return;
     }else{
-        std::cout << "Value of inorder predecessor for key of " << key << " is " << iop->value << "\n";
+        std::cout << "Value of inorder predecessor for value of " << value << " is " << iop->value << "\n";
         return;
     }
 }
-
-//Find the parent of a key in the tree.
-template <typename T>
-void BST<T>::locate_parent(T key){
-    struct leaf<T> * par = NULL;
-    struct leaf<T> * child = search_hlpr(key, root);
-    if(child != NULL){
-        par = find_parent(child, root);
-    }
-    if(par != NULL){
-        std::cout << "Found parent of node with value " << child->value << ", parent has value " << par->value << "\n";
-    }
-}
-
 
 #endif /* BST_h */
